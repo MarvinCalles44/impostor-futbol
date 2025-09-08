@@ -482,13 +482,6 @@ function handleMessage(ws, clientId, message) {
     }
 }
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 Servidor Impostor Fútbol corriendo en puerto ${PORT}`);
-    console.log(`🌐 Abre tu navegador en http://localhost:${PORT}`);
-    console.log(`📊 Salas activas: 0`);
-});
-
 // Limpieza periódica y estadísticas
 setInterval(() => {
     const roomCount = rooms.size;
@@ -504,6 +497,12 @@ setInterval(() => {
     console.log(`📊 Estado: ${rooms.size} salas activas, ${totalPlayers} jugadores conectados`);
 }, 60000); // cada minuto
 
+// ... TODO EL RESTO DE TU CÓDIGO ...
+
+// === ELIMINA ESTA LÍNEA DUPLICADA SI EXISTE ===
+// const PORT = process.env.PORT || 3000;
+
+// === MANTÉN SOLO ESTA PARTE AL FINAL ===
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
