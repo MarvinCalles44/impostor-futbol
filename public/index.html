@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impostor Fútbol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .room-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .players-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .player-item {
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-role {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .impostor {
+            background: linear-gradient(45deg, #ff4757, #c44569) !important;
+        }
+
+        .regular {
+            background: linear-gradient(45deg, #3742fa, #2f3542) !important;
+        }
+
+        .host-controls {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .host-controls h3 {
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ffcccb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .info {
+            background: rgba(46, 204, 113, 0.2);
+            color: #90ee90;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .connected {
+            background: rgba(46, 204, 113, 0.9);
+        }
+
+        .disconnected {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        .game-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .player-count-warning {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffcc99;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status disconnected">Desconectado</div>
+    
+    <div class="container">
+        <h1>⚽ Impostor Fútbol</h1>
+        <p class="subtitle">Juego para Discord - Solo roles</p>
+
+        <!-- Pantalla de inicio -->
+        <div id="home-screen" class="screen active">
+            <div class="button-group">
+                <button onclick="showCreateRoom()">Crear Sala</button>
+                <button onclick="showJoinRoom()">Unirse a Sala</button>
+            </div>
+        </div>
+
+        <!-- Crear sala -->
+        <div id="create-room-screen" class="screen">
+            <div class="input-group">
+                <label for="host-name">Tu nombre:</label>
+                <input type="text" id="host-name" placeholder="Escribe tu nombre" maxlength="20">
+            </div>
+            <div class="button-group">
+                <button onclick="createRoom()">Crear Sala</button>
+                <button onclick="showHome()">Volver</button>
+            </div>
+        </div>
+
+        <!-- Unirse a sala -->
+        <div id="join-room-screen" class="screen">
+            <div class="input-group">
+                <label for="player-name">Tu nombre:</label>
+                <input type="text" id="player-name" placeholder="Escribe tu nombre" maxlength="20">
+            </div>
+            <div class="input-group">
+                <label for="room-code">Código de sala:</label>
+                <input type="text" id="room-code" placeholder="Código de 6 dígitos" maxlength="6">
+            </div>
+            <div class="button-group">
+                <button onclick="joinRoom()">Unirse</button>
+                <button onclick="showHome()">Volver</button>
+            </div>
+        </div>
+
+        <!-- Sala de espera -->
+        <div id="waiting-room-screen" class="screen">
+            <div class="room-info">
+                <h2>Sala: <span id="current-room-code"></span></h2>
+                <p>Comparte este código con tus amigos</p>
+                <p>Jugadores: <span id="player-count">1</span>/10</p>
+            </div>
+            
+            <div class="players-list">
+                <h3>Jugadores en la sala:</h3>
+                <div id="players-container"></div>
+            </div>
+
+            <div class="button-group" id="host-controls" style="display: none;">
+                <button onclick="startGame()" id="start-button" disabled>Iniciar Juego (Mín. 3 jugadores)</button>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="leaveRoom()">Salir de la Sala</button>
+            </div>
+        </div>
+
+        <!-- Juego en curso -->
+        <div id="game-screen" class="screen">
+            <div class="player-role" id="role-display"></div>
+            
+            <div class="game-info">
+                <h3>🎮 Continúa el juego en Discord</h3>
+                <p>Los roles ya están asignados. El host controla las fases desde aquí.</p>
+            </div>
+
+            <!-- Controles del host -->
+            <div id="host-controls-game" class="host-controls" style="display: none;">
+                <h3>🎯 Controles del Host</h3>
+                <div class="button-group">
+                    <button onclick="newRound()" id="new-round-button">Nueva Ronda</button>
+                    <button onclick="endGame()">Terminar Juego</button>
+                </div>
+            </div>
+
+            <!-- Lista de jugadores -->
+            <div class="players-list">
+                <h3>👥 Jugadores en la partida:</h3>
+                <div id="game-players-list"></div>
+                <div id="player-count-warning" class="player-count-warning" style="display: none;">
+                    ⚠️ Mínimo 3 jugadores necesarios para jugar
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="leaveRoom()">Abandonar Partida</button>
+            </div>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="info-message" class="info" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Variables globales
+        let socket = null;
+        let gameState = {
+            roomCode: null,
+            playerName: null,
+            isHost: false,
+            players: [],
+            playerRole: null,
+            assignedPlayer: null
+        };
+
+        // Conectar al servidor
+        function connectToServer() {
+           // Detectar automáticamente si estamos en producción
+  const isLocal = window.location.hostname === 'localhost' || 
+                  window.location.hostname === '127.0.0.1';
+  
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsHost = isLocal ? 'localhost:3000' : window.location.host;
+  
+  socket = new WebSocket(`${wsProtocol}//${wsHost}`);
+  
+  socket.onopen = () => {
+    updateConnectionStatus(true);
+    console.log('Conectado al servidor');
+  };
+
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleServerMessage(message);
+            };
+
+            socket.onclose = () => {
+                updateConnectionStatus(false);
+                console.log('Desconectado del servidor');
+                setTimeout(connectToServer, 3000);
+            };
+
+            socket.onerror = (error) => {
+                console.error('Error de conexión:', error);
+                showError('Error de conexión al servidor');
+            };
+        }
+
+        // Manejar mensajes del servidor
+        function handleServerMessage(message) {
+            switch (message.type) {
+                case 'room-created':
+                    gameState.roomCode = message.roomCode;
+                    gameState.isHost = true;
+                    showWaitingRoom();
+                    break;
+                    
+                case 'room-joined':
+                    gameState.roomCode = message.roomCode;
+                    gameState.players = message.players;
+                    showWaitingRoom();
+                    break;
+                    
+                case 'player-joined':
+                    gameState.players = message.players;
+                    updatePlayersDisplay();
+                    showInfo(`${message.playerJoined} se unió a la sala`);
+                    break;
+                    
+                case 'player-left':
+                    gameState.players = message.players;
+                    updatePlayersDisplay();
+                    updateGamePlayersList();
+                    showInfo(`${message.playerLeft} abandonó la sala`);
+                    
+                    // Si estamos en juego y quedan menos de 3 jugadores, deshabilitar nueva ronda
+                    if (document.getElementById('game-screen').classList.contains('active')) {
+                        checkMinimumPlayers();
+                    }
+                    break;
+                    
+                case 'game-started':
+                    gameState.playerRole = message.role;
+                    gameState.assignedPlayer = message.assignedPlayer;
+                    gameState.players = message.players;
+                    showGameScreen();
+                    break;
+                    
+                case 'new-round-started':
+                    gameState.playerRole = message.role;
+                    gameState.assignedPlayer = message.assignedPlayer;
+                    gameState.players = message.players;
+                    updateGameDisplay();
+                    updateGamePlayersList();
+                    showInfo('¡Nueva ronda! Roles actualizados');
+                    break;
+                    
+                case 'game-ended':
+                    showInfo('Juego terminado - Nueva partida disponible');
+                    resetToWaiting();
+                    break;
+                    
+                case 'error':
+                    showError(message.message);
+                    break;
+            }
+        }
+
+        // Funciones de navegación
+        function showHome() {
+            hideAllScreens();
+            document.getElementById('home-screen').classList.add('active');
+        }
+
+        function showCreateRoom() {
+            hideAllScreens();
+            document.getElementById('create-room-screen').classList.add('active');
+        }
+
+        function showJoinRoom() {
+            hideAllScreens();
+            document.getElementById('join-room-screen').classList.add('active');
+        }
+
+        function showWaitingRoom() {
+            hideAllScreens();
+            document.getElementById('waiting-room-screen').classList.add('active');
+            document.getElementById('current-room-code').textContent = gameState.roomCode;
+            updatePlayersDisplay();
+            
+            if (gameState.isHost) {
+                document.getElementById('host-controls').style.display = 'block';
+            }
+        }
+
+        function showGameScreen() {
+            hideAllScreens();
+            document.getElementById('game-screen').classList.add('active');
+            
+            updateGameDisplay();
+
+            // Mostrar controles del host
+            if (gameState.isHost) {
+                document.getElementById('host-controls-game').style.display = 'block';
+                checkMinimumPlayers();
+            }
+
+            updateGamePlayersList();
+        }
+
+        // Función para actualizar la visualización del juego
+        function updateGameDisplay() {
+            const roleDisplay = document.getElementById('role-display');
+            if (gameState.playerRole === 'impostor') {
+                roleDisplay.className = 'player-role impostor';
+                roleDisplay.innerHTML = `
+                    <h3>🎭 Eres el IMPOSTOR</h3>
+                `;
+            } else {
+                roleDisplay.className = 'player-role regular';
+                roleDisplay.innerHTML = `
+                    <h3>⚽ Tu jugador: <strong>${gameState.assignedPlayer}</strong></h3>
+                    <p>Representa a este jugador con una palabra</p>
+                `;
+            }
+        }
+
+        // Verificar mínimo de jugadores
+        function checkMinimumPlayers() {
+            const newRoundButton = document.getElementById('new-round-button');
+            const warningElement = document.getElementById('player-count-warning');
+            
+            if (gameState.players.length < 3) {
+                if (newRoundButton) newRoundButton.disabled = true;
+                if (warningElement) warningElement.style.display = 'block';
+            } else {
+                if (newRoundButton) newRoundButton.disabled = false;
+                if (warningElement) warningElement.style.display = 'none';
+            }
+        }
+
+        function hideAllScreens() {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+        }
+
+        // Funciones de juego
+        function createRoom() {
+            const hostName = document.getElementById('host-name').value.trim();
+            if (!hostName) {
+                showError('Por favor, escribe tu nombre');
+                return;
+            }
+            
+            gameState.playerName = hostName;
+            sendMessage({
+                type: 'create-room',
+                playerName: hostName
+            });
+        }
+
+        function joinRoom() {
+            const playerName = document.getElementById('player-name').value.trim();
+            const roomCode = document.getElementById('room-code').value.trim().toUpperCase();
+            
+            if (!playerName || !roomCode) {
+                showError('Por favor, completa todos los campos');
+                return;
+            }
+            
+            if (roomCode.length !== 6) {
+                showError('El código de sala debe tener 6 caracteres');
+                return;
+            }
+            
+            gameState.playerName = playerName;
+            sendMessage({
+                type: 'join-room',
+                playerName: playerName,
+                roomCode: roomCode
+            });
+        }
+
+        function startGame() {
+            if (gameState.players.length < 3) {
+                showError('Se necesitan al menos 3 jugadores para empezar');
+                return;
+            }
+            
+            sendMessage({
+                type: 'start-game'
+            });
+        }
+
+        function newRound() {
+            sendMessage({
+                type: 'new-round'
+            });
+        }
+
+        function endGame() {
+            sendMessage({
+                type: 'end-game'
+            });
+        }
+
+        function leaveRoom() {
+            sendMessage({ type: 'leave-room' });
+            resetGameState();
+            showHome();
+        }
+
+        function resetToWaiting() {
+            showWaitingRoom();
+        }
+
+        function resetGameState() {
+            gameState = {
+                roomCode: null,
+                playerName: null,
+                isHost: false,
+                players: [],
+                playerRole: null,
+                assignedPlayer: null
+            };
+        }
+
+        // Funciones auxiliares
+        function updatePlayersDisplay() {
+            const container = document.getElementById('players-container');
+            const playerCount = document.getElementById('player-count');
+            
+            container.innerHTML = gameState.players.map(player => 
+                `<div class="player-item">
+                    ${player.name} ${player.isHost ? '(Host)' : ''}
+                </div>`
+            ).join('');
+            
+            playerCount.textContent = gameState.players.length;
+            
+            const startButton = document.getElementById('start-button');
+            if (startButton) {
+                startButton.disabled = gameState.players.length < 3;
+                startButton.textContent = gameState.players.length < 3 ? 
+                    `Iniciar Juego (Mín. 3 jugadores)` : 
+                    `Iniciar Juego (${gameState.players.length} jugadores)`;
+            }
+        }
+
+        function updateGamePlayersList() {
+            const container = document.getElementById('game-players-list');
+            if (!container) return;
+            
+            container.innerHTML = gameState.players.map(player => 
+                `<div class="player-item">
+                    ${player.name} ${player.isHost ? '(Host)' : ''}
+                </div>`
+            ).join('');
+            
+            checkMinimumPlayers();
+        }
+
+        function updateConnectionStatus(connected) {
+            const status = document.querySelector('.connection-status');
+            if (connected) {
+                status.className = 'connection-status connected';
+                status.textContent = 'Conectado';
+            } else {
+                status.className = 'connection-status disconnected';
+                status.textContent = 'Desconectado';
+            }
+        }
+
+        function sendMessage(message) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(message));
+            } else {
+                showError('No hay conexión al servidor');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showInfo(message) {
+            const infoDiv = document.getElementById('info-message');
+            infoDiv.textContent = message;
+            infoDiv.style.display = 'block';
+            setTimeout(() => {
+                infoDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            connectToServer();
+            
+            // Enter key handlers
+            document.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const activeScreen = document.querySelector('.screen.active');
+                    if (activeScreen) {
+                        const button = activeScreen.querySelector('button:not([disabled])');
+                        if (button && !button.onclick.toString().includes('leaveRoom')) {
+                            button.click();
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
